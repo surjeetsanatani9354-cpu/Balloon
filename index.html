@@ -428,7 +428,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     
-    const MY_ID = localStorage.getItem("permanentUID") || "SLASHER_" + Math.floor(1 + Math.random() * 9000000000);
+    const MY_ID = localStorage.getItem("permanentUID") || "BALLOON_" + Math.floor(1 + Math.random() * 9000000000);
     localStorage.setItem("permanentUID", MY_ID);
     
     let ADMIN_SETTINGS = { gameDuration: 15, showLimit: 200, winAmount: 10, milestones: {100:{wins:10,price:50},250:{wins:20,price:150},500:{wins:40,price:300}}, openTime: "00:00", closeTime: "23:59" };
