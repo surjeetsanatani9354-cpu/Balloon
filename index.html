@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hit 🎈 | Balloon  </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-deep: #0a0c15;
+            --bg-surface: #11161f;
+            --glass-card: rgba(30, 41, 59, 0.75);
+            --premium-gold-start: #fbbf24;
+            --premium-gold-end: #f59e0b;
+            --neon-green: #4ade80;
+            --neon-red: #ff4d4d;
+            --text-glow: 0 0 8px rgba(251, 191, 36, 0.6);
+            --border-glow: 0 0 12px rgba(251, 191, 36, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #121826, #02040c);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 40%, rgba(251, 191, 36, 0.08) 2px, transparent 2px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #statusBanner {
+            background: linear-gradient(95deg, #dc2626, #b91c1c);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            max-width: 500px;
+            z-index: 2000;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+            border-bottom: 1px solid #ff8a8a;
+            display: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 18px 16px 90px 16px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card {
+            background: rgba(18, 25, 45, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .btn-premium {
+            background: linear-gradient(105deg, #fbbf24, #f59e0b);
+            border: none;
+            padding: 16px 20px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: #0c0a1a;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .btn-premium:active { transform: scale(0.97); }
+        .btn-premium:disabled {
+            background: #2d3a4e;
+            box-shadow: none;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            border-radius: 1.5rem;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            flex: 1;
+            margin: 0 6px;
+        }
+        .stat-box small { font-size: 11px; opacity: 0.7; letter-spacing: 0.5px; }
+        .stat-box div { font-weight: 800; font-size: 1.4rem; color: #fbbf24; text-shadow: 0 0 5px #ffb347; }
+
+        /* BALLON ARCHER GAME AREA (full interactive) */
+        .balloon-game-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: radial-gradient(circle at 20% 20%, #1e3a5f, #0f172a);
+            border-radius: 2rem;
+            margin: 15px 0;
+            cursor: crosshair;
+            overflow: hidden;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.3);
+        }
+        #balloonCanvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .balloon {
+            position: absolute;
+            width: 52px;
+            height: 68px;
+            border-radius: 50%;
+            cursor: crosshair;
+            transition: transform 0.05s linear;
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.3));
+            z-index: 20;
+        }
+        .balloon::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 28px;
+            background: rgba(210, 180, 140, 0.8);
+            bottom: -26px;
+            left: 25px;
+        }
+        .arrow-shot {
+            position: absolute;
+            width: 38px;
+            height: 5px;
+            background: #c9a96b;
+            border-radius: 4px;
+            transform-origin: left;
+            z-index: 30;
+            pointer-events: none;
+            filter: drop-shadow(0 0 2px gold);
+        }
+        .arrow-shot::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: -4px;
+            border-left: 12px solid #e67e22;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+        .burst-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffcc44, #ff884d);
+            pointer-events: none;
+            animation: popFly 0.4s forwards;
+            z-index: 200;
+        }
+        @keyframes popFly {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+        }
+        #gameStats {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+        .game-stat-card {
+            background: #0a0f1ad9;
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
+            padding: 8px 12px;
+            text-align: center;
+            flex: 1;
+            border: 1px solid #fbbf2440;
+        }
+        .game-stat-card span:first-child { font-size: 11px; opacity: 0.7; display: block; }
+        .game-stat-card span:last-child { font-size: 24px; font-weight: 800; color: #fbbf24; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 460px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 6px;
+            border-radius: 60px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            box-shadow: 0 20px 35px -10px black;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #7e8ba3;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            cursor: pointer;
+            padding: 6px 0;
+            border-radius: 40px;
+            transition: 0.1s;
+        }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+        .nav-item.active { background: rgba(251, 191, 36, 0.2); color: #fbbf24; text-shadow: 0 0 3px gold; }
+
+        .prize-tag { font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 800; }
+        .tag-win { background: linear-gradient(145deg, #059669, #047857); color: white; box-shadow: 0 2px 6px #0a5c3e; }
+        .tag-lock { background: #1e293b; color: #94a3b8; border: 1px dashed #fbbf24; }
+
+        .leader-item {
+            background: rgba(15, 23, 42, 0.6);
+            margin: 8px 0;
+            padding: 12px 15px;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            border: 1px solid #334155;
+        }
+        .m-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+        .m-table th { color: #fbbf24; font-weight: 700; font-size: 12px; padding-bottom: 6px; }
+        .m-table td { padding: 12px 4px; background: #0f172a80; border-radius: 18px; }
+
+        .logout-btn {
+            background: #dc2626;
+            border-radius: 20px;
+            border: none;
+            padding: 10px 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 9px 8px rgba(220,38,38,0.3);
+            float: right;
+        }
+        input {
+            background: #0c1220;
+            border: 1.5px solid #334155;
+            border-radius: 60px;
+            padding: 14px 18px;
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            transition: 0.2s;
+        }
+        input:focus { border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+        .get-pass-link {
+            display: inline-block;
+            background: #1e293b;
+            padding: 8px 18px;
+            border-radius: 40px;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #fbbf24;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .hidden { display: none; }
+        .active-milestone {
+            background: linear-gradient(115deg, #fbbf2410, #1e293b);
+            border-radius: 30px;
+            padding: 14px;
+            border-left: 4px solid #fbbf24;
+        }
+        .gift-card {
+            background: linear-gradient(135deg, #065f46, #022c22);
+            border-radius: 2rem;
+            margin: 14px 0;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #fbbf24;
+            box-shadow: 0 6px 14px black;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .gift-card:active { transform: scale(0.98); }
+        .code-block {
+            font-size: 22px;
+            font-family: monospace;
+            letter-spacing: 2px;
+            font-weight: bold;
+            background: #00000066;
+            border-radius: 18px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .copy-toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: #020617;
+            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 60px;
+            z-index: 3000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px black;
+            animation: fadeToast 1.5s ease forwards;
+        }
+        @keyframes fadeToast {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="statusBanner"><i class="fas fa-skull-crosswalk"></i> SESSION LOCKED – COME BACK DURING OPEN HOURS </div>    
+
+<div id="loginPage" class="container">
+    <div class="card" style="margin-top: 60px; text-align: center;">
+        <div style="font-size: 64px;">🎈🏹</div>
+        <h2 style="background: linear-gradient(135deg, #FBBF24, #FFD966); -webkit-background-clip: text; background-clip: text; color: transparent;">HIT  BALLON</h2>
+        <p style="color:#a0b3d9; margin: 10px 0;"> Hit balloon | Earn Rewards</p>
+        <input type="password" id="passInput" placeholder="✦ ENTER PASSWORD ✦">
+        <button class="btn-premium" onclick="login()"><i class="fas fa-unlock-alt"></i> UNLOCK</button>
+        <a id="adminTgLink" href="#" target="_blank" class="get-pass-link"><i class="fab fa-telegram"></i> GET PASSWORD</a>
+    </div>
+</div>
+
+<div id="mainApp" class="container hidden">
+    <section id="sec-click" class="tab-content">
+        <div class="card" style="position: relative;">
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Exit</button>
+            <p style="font-size: 10px; margin-top: 8px; text-align: right;"><i class="far fa-clock"></i> Session: <span id="openTimeText">--</span> - <span id="closeTimeText">--</span></p>
+            <h3 style="color:#FBBF24; text-align: center;"><i class="fas fa-bullseye"></i> BALLOON HIT </h3>
+            <div style="display: flex; justify-content: space-between; margin: 20px 0 10px;">
+                <div class="stat-box"><small>⚔️ YOUR ID</small><div id="myUID" style="font-size:13px;">--</div></div>
+                <div class="stat-box"><small>🏆 HIGH SCORE</small><div id="myBest">0</div></div>
+            </div>
+            
+            <!-- Balloon Archer Game Arena (Replaces Apple Slasher) -->
+            <div class="balloon-game-container" id="gameArena">
+                <div id="balloonCanvas" style="position: relative; width: 100%; height: 100%;"></div>
+            </div>
+            
+            <div id="gameStats">
+                <div class="game-stat-card"><span>🎯 SCORE</span><span id="gameScore">0</span></div>
+                <div class="game-stat-card"><span>⏱️ TIME</span><span id="gameTimer">0s</span></div>
+                <div class="game-stat-card"><span>🏹 ARROWS</span><span id="gameArrows">25</span></div>
+            </div>
+            <button id="gameBtn" class="btn-premium"><i class="fas fa-play"></i> START </button>
+            <p style="font-size:11px; text-align:center; margin-top:12px;"><i class=""></i>   +1(🟡) +5(🟢) -3(🔴) 💣=GAME OVER</p>
+        </div>
+    </section>
+
+    <section id="sec-milestone" class="tab-content hidden">
+        <div class="card"><h3 style="color:#FBBF24;"><i class="fas fa-chart-line"></i> MILESTONE & PRIZE</h3>
+            <div id="currentStatus" class="active-milestone" style="margin-bottom: 20px;">🏅 ...</div>
+            <div style="overflow-x: auto;"><table class="m-table"><thead><tr><th>👥 TARGET USERS 🎯</th><th>🏅 WINNERS 🏆</th><th>💰 REWARD (₹)</th></tr></thead><tbody id="milestoneBody"></tbody></table></div>
+        </div>
+    </section>
+
+    <section id="sec-leader" class="tab-content hidden">
+        <div class="card"><h3 style="color:#FBBF24; text-align: center;">🌍 GLOBAL RANKINGS</h3><div style="background:#111b29; display: inline-block; width: auto; margin: 10px auto; padding: 6px 16px; border-radius: 50px;"><i class="fas fa-users"></i> Total Users: <span id="totalUserCount" style="font-weight:800;">0</span></div><div id="leaderList" style="max-height: 430px; overflow-y: auto;"></div></div>
+    </section>
+
+    <section id="sec-gift" class="tab-content hidden">
+        <div class="card"><h3 style="color:#4ADE80;"><i class="fas fa-gift"></i> MY REWARDS</h3><p style="font-size: 11px; opacity:0.7;"><i class="fas fa-mouse-pointer"></i> One‑click any gift card → copy code</p><div id="giftContainer"></div></div>
+    </section>
+</div>
+
+<nav class="bottom-nav hidden" id="bottomNav">
+    <div class="nav-item active" onclick="showTab('sec-click', this)"><i class="fas fa-gamepad"></i>Play</div>
+    <div class="nav-item" onclick="showTab('sec-milestone', this)"><i class="fas fa-bullseye"></i>Roadmap</div>
+    <div class="nav-item" onclick="showTab('sec-leader', this)"><i class="fas fa-trophy"></i>Ranks</div>
+    <div class="nav-item" onclick="showTab('sec-gift', this)"><i class="fas fa-wallet"></i>Gifts</div>
+</nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, get, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDwge6e_yd9r3dYqYQ6v_D-q2stCM7Mcnc",
+        databaseURL: "https://snake-60397-default-rtdb.asia-southeast1.firebasedatabase.app",
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    const MY_ID = localStorage.getItem("permanentUID") || "SLASHER_" + Math.floor(1 + Math.random() * 9000000000);
+    localStorage.setItem("permanentUID", MY_ID);
+    
+    let ADMIN_SETTINGS = { gameDuration: 15, showLimit: 200, winAmount: 10, milestones: {100:{wins:10,price:50},250:{wins:20,price:150},500:{wins:40,price:300}}, openTime: "00:00", closeTime: "23:59" };
+    let currentScore = 0, arrowsRemaining = 30, timeLeft = 0, gameActive = false, gameInterval = null, spawnInterval = null;
+    let globalHighScore = 0;
+
+    // DOM elements for game
+    const gameScoreSpan = document.getElementById('gameScore');
+    const gameTimerSpan = document.getElementById('gameTimer');
+    const gameArrowsSpan = document.getElementById('gameArrows');
+    const gameBtn = document.getElementById('gameBtn');
+    const arena = document.getElementById('gameArena');
+    const canvas = document.getElementById('balloonCanvas');
+    
+    // Load highscore
+    onValue(ref(db, `leaderboard/${MY_ID}`), (snap) => {
+        if(snap.val()) document.getElementById('myBest').innerText = snap.val().score || 0;
+    });
+    
+    // Admin settings sync with balloon timer
+    onValue(ref(db, 'settings'), (snap) => {
+        const data = snap.val() || {};
+        ADMIN_SETTINGS = {...ADMIN_SETTINGS, ...data};
+        document.getElementById('openTimeText').innerText = data.openTime || "00:00";
+        document.getElementById('closeTimeText').innerText = data.closeTime || "23:59";
+        if(document.getElementById('adminTgLink')) document.getElementById('adminTgLink').href = data.tgLink || "#";
+        if(data.forceLogoutKey && data.forceLogoutKey != localStorage.getItem("lastLogoutKey")) {
+            localStorage.setItem("lastLogoutKey", data.forceLogoutKey);
+            logout();
+        }
+        checkAppStatus();
+    });
+    
+    if(localStorage.getItem("isLoggedIn") === "true") {
+        onValue(ref(db, `forceLogout/${MY_ID}`), (snap) => { if(snap.val() === true) { remove(ref(db, `forceLogout/${MY_ID}`)); logout(); } });
+    }
+    
+    // Helper toast
+    function showCopyToast(msg) { const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.innerHTML = `<i class="fas fa-copy"></i> ${msg}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 1500); }
+    
+    // GIFT one-click copy
+    function attachGiftCopy() { const container = document.getElementById('giftContainer'); if(container) container.addEventListener('click', (e) => { const card = e.target.closest('.gift-card'); if(card) { const codeSpan = card.querySelector('.copy-code-text'); if(codeSpan) { navigator.clipboard.writeText(codeSpan.innerText).then(()=>showCopyToast(`✅ ${codeSpan.innerText} copied!`)).catch(()=>showCopyToast("Copied!")); } } }); }
+    
+    // ================= BALLOON GAME CORE =================
+    let bowAngle = 0;
+    // Create bow element inside arena
+    const bowDiv = document.createElement('div');
+    bowDiv.id = "bowElite";
+    bowDiv.innerHTML = "🏹";
+    bowDiv.style.position = "absolute";
+    bowDiv.style.bottom = "15px";
+    bowDiv.style.left = "50%";
+    bowDiv.style.fontSize = "48px";
+    bowDiv.style.transform = "translateX(-50%)";
+    bowDiv.style.transition = "transform 0.05s linear";
+    bowDiv.style.filter = "drop-shadow(0 0 6px gold)";
+    bowDiv.style.zIndex = "100";
+    arena.appendChild(bowDiv);
+    
+    function updateBowAim(e) {
+        if (!gameActive) return;
+        const rect = arena.getBoundingClientRect();
+        const bowRect = bowDiv.getBoundingClientRect();
+        const bowX = bowRect.left + bowRect.width/2;
+        const bowY = bowRect.top + bowRect.height/2;
+        let angle = Math.atan2(e.clientY - bowY, e.clientX - bowX);
+        bowDiv.style.transform = `translateX(-50%) rotate(${angle + 0.8}rad)`;
+        bowAngle = angle;
+    }
+    arena.addEventListener('mousemove', updateBowAim);
+    
+    function shootArrow(e) {
+        if (!gameActive) return;
+        if (arrowsRemaining <= 0) return;
+        arrowsRemaining--;
+        gameArrowsSpan.innerText = arrowsRemaining;
+        const rect = arena.getBoundingClientRect();
+        const bowRect = bowDiv.getBoundingClientRect();
+        let startX = bowRect.left + bowRect.width/2 - rect.left;
+        let startY = bowRect.top + bowRect.height/2 - rect.top;
+        const arrow = document.createElement('div');
+        arrow.className = 'arrow-shot';
+        let angle = bowAngle;
+        arrow.style.left = startX + 'px';
+        arrow.style.top = startY + 'px';
+        arrow.style.transform = `rotate(${angle}rad)`;
+        canvas.appendChild(arrow);
+        let x = startX, y = startY;
+        function animateArrow() {
+            x += Math.cos(angle) * 16;
+            y += Math.sin(angle) * 16;
+            arrow.style.left = x + 'px';
+            arrow.style.top = y + 'px';
+            // hit detection
+            const hitElem = document.elementsFromPoint(rect.left + x, rect.top + y).find(el => el.classList && el.classList.contains('balloon'));
+            if (hitElem) {
+                handleBalloonHit(hitElem);
+                arrow.remove();
+                return;
+            }
+            if (x > rect.width + 50 || x < -50 || y > rect.height + 80 || y < -80) {
+                arrow.remove();
+                if(arrowsRemaining === 0 && gameActive) endGameSession("Out of Arrows!");
+            } else {
+                requestAnimationFrame(animateArrow);
+            }
+        }
+        requestAnimationFrame(animateArrow);
+    }
+    arena.addEventListener('click', shootArrow);
+    
+    function handleBalloonHit(balloon) {
+        const type = balloon.dataset.type;
+        if (type === "bomb") { endGameSession("💣 BOOM! Bomb exploded!"); return; }
+        if (type === "std") currentScore += 1;
+        else if (type === "bonus") currentScore += 5;
+        else if (type === "bad") currentScore = Math.max(0, currentScore - 3);
+        gameScoreSpan.innerText = currentScore;
+        createPopEffect(balloon);
+        balloon.remove();
+    }
+    
+    function createPopEffect(el) {
+        const rect = el.getBoundingClientRect();
+        const arenaRect = arena.getBoundingClientRect();
+        for(let i=0;i<8;i++) {
+            const part = document.createElement('div');
+            part.className = 'burst-particle';
+            const dx = (Math.random() - 0.5) * 50;
+            const dy = (Math.random() - 0.5) * 40 - 20;
+            part.style.setProperty('--dx', dx + 'px');
+            part.style.setProperty('--dy', dy + 'px');
+            part.style.left = (rect.left - arenaRect.left + 25) + 'px';
+            part.style.top = (rect.top - arenaRect.top + 30) + 'px';
+            canvas.appendChild(part);
+            setTimeout(() => part.remove(), 400);
+        }
+    }
+    
+    function spawnBalloon() {
+        if (!gameActive) return;
+        const types = [{prob:55, type:'std', color:'#f1c40f'},{prob:25, type:'bonus', color:'#2ecc71'},{prob:15, type:'bad', color:'#e74c3c'},{prob:5, type:'bomb', color:'#2c3e50'}];
+        let rand = Math.random()*100;
+        let selected = types[0];
+        for(let t of types) { if(rand < t.prob) { selected = t; break; } rand -= t.prob; }
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.style.backgroundColor = selected.color;
+        balloon.dataset.type = selected.type;
+        balloon.style.left = Math.random() * (arena.clientWidth - 60) + 10 + "px";
+        balloon.style.bottom = "-80px";
+        canvas.appendChild(balloon);
+        let pos = -80, speed = 1.8 + Math.random() * 3.5;
+        function rise() {
+            if(!gameActive) { if(balloon.parentNode) balloon.remove(); return; }
+            pos += speed;
+            balloon.style.bottom = pos + "px";
+            if(pos > arena.clientHeight + 100) balloon.remove();
+            else requestAnimationFrame(rise);
+        }
+        requestAnimationFrame(rise);
+    }
+    
+    function startGameSession() {
+        if(gameActive) return;
+        // Clear old balloons
+        document.querySelectorAll('.balloon').forEach(b => b.remove());
+        currentScore = 0; arrowsRemaining = 30; timeLeft = ADMIN_SETTINGS.gameDuration || 15;
+        gameScoreSpan.innerText = "0"; gameArrowsSpan.innerText = "30"; gameTimerSpan.innerText = timeLeft+"s";
+        gameActive = true;
+        gameBtn.disabled = true; gameBtn.innerHTML = '<i class="fas fa-bullseye"></i> ARCHERY ACTIVE';
+        if(gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(() => {
+            if(!gameActive) return;
+            timeLeft--;
+            gameTimerSpan.innerText = timeLeft+"s";
+            if(timeLeft <= 0) endGameSession("TIME'S UP!");
+        }, 1000);
+        if(spawnInterval) clearInterval(spawnInterval);
+        spawnInterval = setInterval(() => { if(gameActive) spawnBalloon(); }, 800);
+        for(let i=0;i<3;i++) setTimeout(() => spawnBalloon(), 100*i);
+    }
+    
+    async function endGameSession(reason) {
+        if(!gameActive) return;
+        gameActive = false;
+        clearInterval(gameInterval); clearInterval(spawnInterval);
+        gameBtn.disabled = false; gameBtn.innerHTML = '<i class="fas fa-play"></i> START ARCHERY';
+        const scoreRef = ref(db, `leaderboard/${MY_ID}`);
+        const snap = await get(scoreRef);
+        const best = (snap.val() && snap.val().score) ? snap.val().score : 0;
+        if (currentScore > best) await set(scoreRef, { uid: MY_ID, score: currentScore });
+        await set(ref(db, `userLogs/${MY_ID}`), { uid: MY_ID, score: currentScore, duration: ADMIN_SETTINGS.gameDuration, timestamp: new Date().toLocaleTimeString(), device: navigator.userAgent.includes("Mobile") ? "Mobile" : "Desktop" });
+        document.getElementById('myBest').innerText = Math.max(best, currentScore);
+        checkAppStatus();
+        // quick visual alert
+        const msgDiv = document.createElement('div'); msgDiv.className = 'copy-toast'; msgDiv.style.background="#fbbf24"; msgDiv.style.color="black"; msgDiv.innerText = `${reason} | Score: ${currentScore}`; document.body.appendChild(msgDiv); setTimeout(()=>msgDiv.remove(),2000);
+    }
+    
+    gameBtn.onclick = () => { if(!gameActive && !gameBtn.disabled) startGameSession(); };
+    
+    // Leaderboard & milestones
+    function updateMilestonesUI(userCount) {
+        const ms = ADMIN_SETTINGS.milestones || {};
+        const body = document.getElementById('milestoneBody');
+        body.innerHTML = '';
+        let currentUnlocked = 0;
+        Object.keys(ms).sort((a,b)=>Number(a)-Number(b)).forEach(target => {
+            const reached = userCount >= parseInt(target);
+            if(reached) currentUnlocked = ms[target].wins;
+            body.innerHTML += `<tr style="background:${reached ? '#0f2b1f30' : 'transparent'}"><td style="font-weight:bold;"> ${target} users ${reached ? '✅️' : ''} </td><td> ${ms[target].wins} winners </td><td> ₹${ms[target].price} </td></tr>`;
+        });
+        document.getElementById('currentStatus').innerHTML = `<i class="fas fa-crown"></i> ${currentUnlocked} Winners Unlocked <i class="fas fa-gem"></i>`;
+        return currentUnlocked;
+    }
+    
+    function initDataSync() {
+        onValue(ref(db, 'leaderboard'), (snap) => {
+            const data = snap.val() || {};
+            const users = Object.values(data).sort((a,b) => b.score - a.score);
+            document.getElementById('totalUserCount').innerText = users.length;
+            const winnersLimit = updateMilestonesUI(users.length);
+            const listDiv = document.getElementById('leaderList');
+            listDiv.innerHTML = '';
+            users.slice(0, ADMIN_SETTINGS.showLimit || 200).forEach((u, idx) => {
+                const rank = idx+1;
+                const isWinner = rank <= winnersLimit;
+                const highlight = u.uid === MY_ID ? 'style="background: linear-gradient(95deg,#fbbf2420,#2a1e0a); border-left:4px solid #fbbf24;"' : '';
+                listDiv.innerHTML += `<div class="leader-item" ${highlight}><div style="display:flex; justify-content:space-between;"><span><strong>#${rank}</strong> ${u.uid === MY_ID ? '🔥 YOU' : u.uid.slice(0,12)} </span><span><span class="prize-tag ${isWinner ? 'tag-win' : 'tag-lock'}">${isWinner ? '₹'+ADMIN_SETTINGS.winAmount : 'locked'}</span> <span style="color:#4ade80;">${u.score}</span></span></div></div>`;
+                if(u.uid === MY_ID) document.getElementById('myBest').innerText = u.score;
+            });
+        });
+        onValue(ref(db, `gifts/${MY_ID}`), (snap) => {
+            const gifts = snap.val();
+            const container = document.getElementById('giftContainer');
+            if(!gifts || Object.keys(gifts).length === 0) { container.innerHTML = "<div style='padding:24px; text-align:center; background:#0a0f1e; border-radius:30px;'><i class='fas fa-inbox'></i> No rewards yet.<br><small>Win rank prizes after session ends</small></div>"; return; }
+            container.innerHTML = Object.values(gifts).map(g => `<div class="gift-card" data-code="${g.code}"><i class="fas fa-ticket-alt" style="font-size:26px;"></i><div style="font-size:12px;">🎁 REWARD ₹${g.amount}</div><div class="code-block"><span class="copy-code-text" data-code="${g.code}" style="cursor:pointer;">${g.code}</span><i class="fas fa-copy"></i></div><div class="click-hint"><i class="fas fa-mouse-pointer"></i> Click → copy code</div></div>`).join('');
+            attachGiftCopy();
+        });
+    }
+    
+    function checkAppStatus() {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        const closed = timeStr < ADMIN_SETTINGS.openTime || timeStr > ADMIN_SETTINGS.closeTime;
+        document.getElementById('statusBanner').style.display = closed ? 'flex' : 'none';
+        if(closed && gameBtn) { gameBtn.disabled = true; gameBtn.innerHTML = '<i class="fas fa-ban"></i> SESSION CLOSED'; }
+        else if(gameBtn && !gameActive) { gameBtn.disabled = false; gameBtn.innerHTML = '<i class="fas fa-play"></i> START ARCHERY'; }
+    }
+    
+    window.login = async () => {
+        const pass = document.getElementById('passInput').value.trim();
+        const snap = await get(ref(db, 'allPasswords'));
+        let valid = false;
+        if(snap.val()) for(let k in snap.val()) if(snap.val()[k].code === pass) { await remove(ref(db, `allPasswords/${k}`)); valid = true; break; }
+        if(valid) { localStorage.setItem("isLoggedIn", "true"); location.reload(); } else alert("❌ Invalid Password!");
+    };
+    window.logout = () => { localStorage.removeItem("isLoggedIn"); location.reload(); };
+    window.showTab = (id, el) => { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); };
+    
+    if(localStorage.getItem("isLoggedIn") === "true") {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('bottomNav').classList.remove('hidden');
+        document.getElementById('myUID').innerText = MY_ID;
+        initDataSync();
+        setInterval(checkAppStatus, 3000);
+    }
+</script>
+</body>
+      </html>
